@@ -6,14 +6,21 @@
   <arg name="frequency" default="16000" />
   <arg name="use_ros_time" default="True" />
 
+  <arg name="lang" default="ja" />
+  <arg name="engine" default="nict" />
+
   <node name="rospeex_sr" pkg="rospeex_core" type="rospeex_sr.py" cwd="node">
       <rosparam file="$(find naoqi_rospeex)/config/sr_config.yaml" command="load" />
   </node>
-  <node name="naoqi_sr" pkg="naoqi_rospeex" type="naoqi_sr.py" output="screen"/>
 
   <node pkg="naoqi_sensors" type="microphone.py" name="naoqi_microphone" required="true" args="--pip=$(arg nao_ip) --pport=$(arg nao_port)" output="screen">
     <param name="frequency" type="int" value="$(arg frequency)" />
     <param name="use_ros_time" type="bool" value="$(arg use_ros_time)" />
+  </node>
+
+  <node name="naoqi_sr" pkg="naoqi_rospeex" type="naoqi_sr.py" output="screen">
+    <param name="lang" type="str" value="$(arg lang)" />
+    <param name="engine" type="str" value="$(arg engine)" />
   </node>
 
 </launch>

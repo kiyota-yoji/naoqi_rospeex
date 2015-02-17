@@ -25,6 +25,10 @@ class NaoqiSR():
         self._listening = False
         self._frame_id = 0
 
+        # parameters for speech recognition
+        self.lang = rospy.get_param('~lang')
+        self.engine = rospy.get_param('~engine')
+
         self._sr_interface = ROSpeexInterface()
         self._sr_interface.init()
         self._sr_interface.register_sr_response(self._sr_response)
@@ -66,7 +70,8 @@ class NaoqiSR():
         voice_data = None
         with open(tmp[1], 'rb') as fr:
             voice_data = fr.read()
-        self._sr_interface.recognize(voice_data, 'ja', 'nict')
+        print "lang=%s, engine=%s" % (self.lang, self.engine)
+        self._sr_interface.recognize(voice_data, self.lang, self.engine)
         os.remove(tmp[1])
     
     def audio_cb(self, data):
@@ -123,7 +128,7 @@ class NaoqiSR():
 
 
 if __name__ == "__main__":
-    sr = NaoqiSR(timeout = 5)
+    sr = NaoqiSR()
     rospy.spin()
 
     
