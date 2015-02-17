@@ -3,5 +3,5 @@
       <rosparam file="$(find naoqi_rospeex)/config/sr_config.yaml" command="load" />
   </node>
   <node name="dummy_microphone" pkg="test_rospeex" type="dummy_microphone.py" output="screen"/>
-  <node name="naoqi_sr" pkg="test_rospeex" type="naoqi_sr.py" output="screen"/>
+  <node name="naoqi_sr" pkg="naoqi_rospeex" type="naoqi_sr.py" output="screen"/>
 </launch>

@@ -18,7 +18,7 @@ class NaoqiSR():
         rospy.init_node('naoqi_sr')
         self.sub = rospy.Subscriber(NAOQI_AUDIO_TOPIC, AudioBuffer, self.audio_cb)
         # parameters for getting WAV data
-        self.energy_threshold = 500
+        self.energy_threshold = 1000
         self.pause_threshold = 0.8
         self.quiet_duration = 0.5
         self.timeout = timeout
@@ -66,9 +66,8 @@ class NaoqiSR():
         voice_data = None
         with open(tmp[1], 'rb') as fr:
             voice_data = fr.read()
-        self._sr_interface.recognize(voice_data, 'en', 'nict')
+        self._sr_interface.recognize(voice_data, 'ja', 'nict')
         os.remove(tmp[1])
-        #rospy.sleep(10.0)
     
     def audio_cb(self, data):
         # This contains (in the 'data' field): int16[] data
