@@ -5,7 +5,6 @@
 
 import rospy
 from naoqi_msgs.msg import AudioBuffer
-from speech_recognition import Microphone
 import threading
 import time
 
@@ -28,24 +27,40 @@ asound.snd_lib_error_set_handler(c_error_handler)
 
 class DummyMic():
 
-    def __init__(self):
+    def __init__(self, device_index = None):
         rospy.init_node('dummy_microphone')
         self.pub = rospy.Publisher(NAOQI_AUDIO_TOPIC, AudioBuffer, queue_size=10)
-        self.source = Microphone()
-        self.source.CHUNK = 1365
+        self.device_index = device_index
+        self.format = pyaudio.paInt16 # 16-bit int sampling
+        self.SAMPLE_WIDTH = pyaudio.get_sample_size(self.format)
+        self.RATE = 16000 # sampling rate in Hertz
+        self.CHANNELS = 1 # mono audio
+        self.CHUNK = 1365 # same as naoqi_microphone.py
+
+        self.audio = pyaudio.PyAudio()
+        self.stream = self.audio.open(
+            input_device_index = self.device_index,
+            format = self.format, rate = self.RATE, channels = self.CHANNELS, frames_per_buffer = self.CHUNK,
+            input = True, # stream is an input stream
+        )
+
         self.end_flag = False
 
     def listen(self):
-        with self.source as s:
-            while not self.end_flag:
-                buffer = s.stream.read(self.source.CHUNK)
-                if len(buffer) == 0: break # reached end of the stream
-                self._publish(buffer, s)
+        while not self.end_flag:
+            buffer = self.stream.read(self.CHUNK)
+            if len(buffer) == 0: break # reached end of the stream
+            self._publish(buffer)
+
+        self.stream.stop_stream()
+        self.stream.close()
+        self.stream = None
+        self.audio.terminate()
 
     def close(self):
         self.end_flag = True
 
-    def _publish(self, buffer, s):
+    def _publish(self, buffer):
         audio_msg = AudioBuffer()
 
         # Deal with the sound
@@ -64,7 +79,7 @@ class DummyMic():
             mic_data = mic_data + [mictmp[i]] * 4
         
         audio_msg.header.stamp = rospy.Time.now()
-        audio_msg.frequency = s.RATE
+        audio_msg.frequency = self.RATE
         audio_msg.channelMap = [3,5,0,2]
         audio_msg.data = mic_data
         
